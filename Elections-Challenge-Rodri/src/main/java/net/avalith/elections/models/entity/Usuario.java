@@ -19,16 +19,17 @@ public class Usuario {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id_usuario")
 	private Long id;
-	
+
 	@JsonProperty("first_name")
 	@NotEmpty(message ="no puede estar vacio")
 	@Size(min=3, max=30, message="el tamaño tiene que estar entre 3 a 30")
-	@Column(name="first_name", nullable = false)
+	//@Column(name="first_name", nullable = false)
 	private String nombre;
 
 	@JsonProperty("last_name")
 	@NotEmpty(message ="no puede estar vacio")
-	@Column(name="last_name")
+	@Size(min=3, max=30, message="el tamaño tiene que estar entre 3 a 30")
+	//@Column(name="last_name")
 	private String apellido;
 
 	@NotEmpty(message ="no puede estar vacio")

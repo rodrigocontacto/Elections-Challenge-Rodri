@@ -1,8 +1,8 @@
 package net.avalith.elections.controllers;
 
-
+import net.avalith.elections.models.entity.Candidate;
 import net.avalith.elections.models.entity.Usuario;
-import net.avalith.elections.models.service.IUsuarioService;
+import net.avalith.elections.models.service.ICandidateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
@@ -18,28 +18,17 @@ import java.util.stream.Collectors;
 
 @RestController
 //@RequestMapping("/api")
-public class UsuarioController {
+public class CandidateController {
+    @Autowired
+    private ICandidateService candidateService;
 
-	@Autowired
-	private IUsuarioService usuarioService;
-
-	@GetMapping("/usuarios")
-	public List<Usuario> index() {
-		return usuarioService.findAll();
-	}
-
-	@GetMapping("/usuarios/{id}")
-	public Usuario show(@PathVariable Long id) {
-		return this.usuarioService.findById(id);
-	}
-
-	@PostMapping("/user")
-	@ResponseStatus(HttpStatus.CREATED)
-	public ResponseEntity<?> create(@Valid @RequestBody Usuario usuario, BindingResult result) {
-        Usuario usuarioNew = null;
+    @PostMapping("/candidate")
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<?> create(@Valid @RequestBody Candidate candidate, BindingResult result) {
+        Candidate candidateNew = null;
         Map<String, Object> response = new HashMap<>();
 
-       if(result.hasErrors()) {
+        if(result.hasErrors()) {
 
             List<String> errors = result.getFieldErrors()
                     .stream()
@@ -51,33 +40,16 @@ public class UsuarioController {
         }
 
         try {
-            usuarioNew = usuarioService.save(usuario);
+            candidateNew = candidateService.save(candidate);
         } catch(DataAccessException e) {
             response.put("mensaje", "Error al realizar el insert en la base de datos");
             response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
             return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
-        response.put("mensaje", "El usuario ha sido creado con éxito!");
-        response.put("usuario", usuarioNew);
+        response.put("mensaje", "El candidato ha sido creado con éxito!");
+        response.put("candidate", candidateNew);
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
     }
-
-	@PutMapping("/usuarios/{id}")
-	@ResponseStatus(HttpStatus.CREATED)
-	public Usuario update(@RequestBody Usuario usuario, @PathVariable Long id) {
-		Usuario currentUsuario= this.usuarioService.findById(id);
-		currentUsuario.setNombre(usuario.getNombre());
-		currentUsuario.setApellido(usuario.getApellido());
-		currentUsuario.setEmail(usuario.getEmail());
-		return currentUsuario;
-	}
-	
-	@DeleteMapping("/usuarios/{id}")
-	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable Long id) {
-		this.usuarioService.delete(id);
-	}
 }
-
