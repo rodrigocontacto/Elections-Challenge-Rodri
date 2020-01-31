@@ -1,13 +1,13 @@
-package net.avalith.elections.models.service;
+package net.avalith.elections.service;
 
-import net.avalith.elections.models.entity.Usuario;
+import net.avalith.elections.models.Usuario;
 
 import java.util.List;
 
 public interface IUsuarioService {
 	public List<Usuario> findAll();
 
-	public void save(Usuario usuario);
+	public Usuario save(Usuario usuario);
 
 	public Usuario findById(Long id);
 

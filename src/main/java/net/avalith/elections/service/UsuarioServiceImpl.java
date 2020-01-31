@@ -1,9 +1,9 @@
-package net.avalith.elections.models.service;
+package net.avalith.elections.service;
 
 import java.util.List;
 
-import net.avalith.elections.models.dao.IUsuarioDao;
-import net.avalith.elections.models.entity.Usuario;
+import net.avalith.elections.dao.IUsuarioDao;
+import net.avalith.elections.models.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,8 +23,8 @@ public class UsuarioServiceImpl implements IUsuarioService{
 
 	@Override
 	@Transactional
-	public void save(Usuario usuario) {
-		usuarioDao.save(usuario);
+	public Usuario save(Usuario usuario) {
+		return usuarioDao.save(usuario);
 	}
 
 	@Override
