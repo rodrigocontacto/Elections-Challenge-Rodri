@@ -1,6 +1,7 @@
 package net.avalith.elections.controllers;
 
 import net.avalith.elections.models.Candidate;
+import net.avalith.elections.models.Usuario;
 import net.avalith.elections.service.ICandidateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -50,5 +51,10 @@ public class CandidateController {
         response.put("candidate", candidateNew);
         return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
 
+    }
+
+    @GetMapping("/candidate/{id}")
+    public Candidate show(@PathVariable Long id) {
+        return this.candidateService.findById(id);
     }
 }
