@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,7 +30,7 @@ public class UsuarioController {
 	}
 
 	@GetMapping("/usuarios/{id}")
-	public Usuario show(@PathVariable Long id) {
+	public Usuario show(@PathVariable String id) {
 		return this.usuarioService.findById(id);
 	}
 
@@ -51,6 +52,7 @@ public class UsuarioController {
         }
 
         try {
+        	usuario.setId(UUID.randomUUID().toString());
             usuarioNew = usuarioService.save(usuario);
         } catch(DataAccessException e) {
             response.put("mensaje", "Error al realizar el insert en la base de datos");
@@ -66,7 +68,7 @@ public class UsuarioController {
 
 	@PutMapping("/usuarios/{id}")
 	@ResponseStatus(HttpStatus.CREATED)
-	public Usuario update(@RequestBody Usuario usuario, @PathVariable Long id) {
+	public Usuario update(@RequestBody Usuario usuario, @PathVariable String id) {
 		Usuario currentUsuario= this.usuarioService.findById(id);
 		currentUsuario.setNombre(usuario.getNombre());
 		currentUsuario.setApellido(usuario.getApellido());
@@ -76,7 +78,7 @@ public class UsuarioController {
 	
 	@DeleteMapping("/usuarios/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
-	public void delete(@PathVariable Long id) {
+	public void delete(@PathVariable String id) {
 		this.usuarioService.delete(id);
 	}
 }

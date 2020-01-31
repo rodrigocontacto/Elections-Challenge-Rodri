@@ -29,13 +29,13 @@ public class UsuarioServiceImpl implements IUsuarioService{
 
 	@Override
 	@Transactional(readOnly=true)
-	public Usuario findById(Long id) {
+	public Usuario findById(String id) {
 		return usuarioDao.findById(id).orElse(null);
 	}
 
 	@Override
 	@Transactional
-	public void delete(Long id) {
+	public void delete(String id) {
 		usuarioDao.deleteById(id);
 
 	}

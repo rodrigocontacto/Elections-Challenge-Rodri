@@ -16,9 +16,8 @@ import javax.validation.constraints.Size;
 @Table(name = "usuarios")
 public class Usuario {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name="id_usuario")
-	private Long id;
+	private String id;
 
 	@JsonProperty("first_name")
 	@NotEmpty(message ="no puede estar vacio")
