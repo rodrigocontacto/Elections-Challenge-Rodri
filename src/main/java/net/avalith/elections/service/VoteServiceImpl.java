@@ -2,12 +2,12 @@ package net.avalith.elections.service;
 
 import net.avalith.elections.dao.IElectionCandidateDao;
 import net.avalith.elections.dao.IVoteDao;
+import net.avalith.elections.entities.BodyFakeUserVote;
 import net.avalith.elections.entities.BodyVote;
 import net.avalith.elections.models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -29,7 +29,7 @@ public class VoteServiceImpl {
     private ElectionServiceImpl electionService;
 
     @Autowired
-    private UsuarioServiceImpl userService;
+    private UserServiceImpl userService;
 
     @Autowired
     private CandidateServiceImpl candidateService;
@@ -58,13 +58,12 @@ public class VoteServiceImpl {
 
     }
 
-    public ResponseEntity<?> createVote(Long idElection, String idUser, BodyVote bodyVote, BindingResult result) {
-        Election electionNew = null;
-        Usuario user = null;
-        Candidate electedCandidate = null;
+    public Vote createVote(Long idElection, String idUser, BodyVote bodyVote, BindingResult result) {
+        Election electionNew;
+        User user;
+        Candidate electedCandidate = new Candidate();
         Vote vote = new Vote();
         ElectionCandidate electionCandidate = null;
-        Map<String, Object> response = new HashMap<>();
 
         if (result.hasErrors()) {
 
@@ -73,24 +72,22 @@ public class VoteServiceImpl {
                     .map(err -> "El campo '" + err.getField() + "' " + err.getDefaultMessage())
                     .collect(Collectors.toList());
 
-            response.put("errors", errors);
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"error");
         }
 
         try {
             electionNew = electionService.findById(idElection);
             user = userService.findById(idUser);
-            electedCandidate = candidateService.findById(bodyVote.getId());
             boolean existCandidateInElection = false;
-            for(int i = 0; i < electionNew.getElectionCandidates().size(); i++){
-                if(electedCandidate.getId().longValue() == electionNew.getElectionCandidates().get(i).getCandidate().getId()){
+            for(int i= 0; i< electionNew.getElectionCandidates().size(); i++){
+                if(electionNew.getElectionCandidates().get(i).getCandidate().getId() == bodyVote.getId()){
+                    electedCandidate = electionNew.getElectionCandidates().get(i).getCandidate();
+                    electionCandidate = electionNew.getElectionCandidates().get(i);
                     existCandidateInElection = true;
-                    Long electionCandidateId = electionCandidateDao.getElectionCandidateId(electedCandidate.getId().longValue(), electionNew.getId());
-                    electionCandidate = electionCandidateService.findById(electionCandidateId);
                 }
             }
 
-            if(existCandidateInElection && user != null ){
+            if(existCandidateInElection){
                 if (this.hasNotVoted(user, electionNew)) {
                     electionCandidate.setCountVotes(electionCandidate.getCountVotes()+1);
                     vote.setElectionCandidate(electionCandidate);
@@ -100,33 +97,28 @@ public class VoteServiceImpl {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ya has votado en esta eleccion");
                 }
             }else{
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este usuario no se encuentra registrado");
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Ese candidato no esta en la eleccion");
             }
 
         } catch (DataAccessException e) {
-            response.put("mensaje", "Error al realizar el insert en la base de datos");
-            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"error al insertar en BD");
         }
 
-        response.put("mensaje", "Gracias por tu voto!");
-        response.put("vote", vote.getId());
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+        return vote;
     }
 
-    public ResponseEntity<?> createFakeVotes(Long electionId, Long candidateId, BindingResult result){
-        Map<String, Object> response = new HashMap<>();
-        List<Usuario> users = userService.findFakes();
+    public void createFakeVotes(Long electionId, BodyFakeUserVote candidate, BindingResult result){
+
+        List<User> users = userService.findFakes();
         BodyVote bodyVote = new BodyVote();
-        bodyVote.setId(candidateId);
-        for(Usuario user : users){
+        bodyVote.setId(candidate.getId_candidate());
+        for(User user : users){
             this.createVote(electionId, user.getId(), bodyVote, result);
         }
-        response.put("mensaje", "Votos generados correctamente");
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+
     }
 
-    public boolean hasNotVoted(Usuario user, Election election){
+    public boolean hasNotVoted(User user, Election election){
         return user.getVotes().stream().noneMatch(it-> it.getElectionCandidate().getElection().getId() == election.getId());
     }
 }

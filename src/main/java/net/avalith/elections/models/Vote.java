@@ -22,5 +22,5 @@ public class Vote {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_usuario", referencedColumnName = "id")
-    private Usuario user;
+    private User user;
 }

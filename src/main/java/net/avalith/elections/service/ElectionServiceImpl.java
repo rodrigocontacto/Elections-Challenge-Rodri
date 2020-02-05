@@ -57,11 +57,9 @@ public class ElectionServiceImpl {
 
     }
 
-    public ResponseEntity<?> createElection(BodyElection election, BindingResult result){
-        Election electionNew = null;
+    public Election createElection(BodyElection election, BindingResult result){
+        Election electionNew;
 
-        //Election election = null;
-        Map<String, Object> response = new HashMap<>();
 
         if (result.hasErrors()) {
 
@@ -70,8 +68,7 @@ public class ElectionServiceImpl {
                     .map(err -> "El campo '" + err.getField() + "' " + err.getDefaultMessage())
                     .collect(Collectors.toList());
 
-            response.put("errors", errors);
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"errors");
         }
 
         try {
@@ -85,13 +82,12 @@ public class ElectionServiceImpl {
 
                 if (election.getElectionCandidates().size() > 0) {
                     List<ElectionCandidate> listexc = new ArrayList<>();
+
                     for (Long aux : election.getElectionCandidates()) {
                         ElectionCandidate exc = new ElectionCandidate();
-                        //Long numInLong = Long.valueOf(aux);
                         Candidate candidate = candidateService.findById(aux);
                         exc.setCandidate(candidate);
                         exc.setElection(electionNew);
-                        //entidadCandidateService.save(exc);
                         electionCandidateService.save(exc);
                         electionNew.getElectionCandidates().add(exc);
                         listexc.add(exc);
@@ -100,20 +96,15 @@ public class ElectionServiceImpl {
                     electionNew = this.save(electionNew);
                 }
             } else {
-                response.put("mensaje", "La fecha de inicio debe ser menor a la de final");
-                return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"La fecha de inicio debe ser menor a la de final");
             }
 
 
         } catch (DataAccessException e) {
-            response.put("mensaje", "Error al realizar el insert en la base de datos");
-            response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-            return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Error al realizar el insert en la base de datos");
         }
 
-        response.put("mensaje", "La eleccion ha sido creada con éxito!");
-        response.put("election", electionNew.getId());
-        return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+        return electionNew;
     }
 
     public BodyElectionCandidateResults electionResults(Long electionId){
@@ -134,6 +125,10 @@ public class ElectionServiceImpl {
         ecResults.setTotal_votes(count);
         return ecResults;
 
+    }
+
+    public List<Election> getActiveElections() {
+        return this.electionDao.getActiveElections();
     }
 
 }

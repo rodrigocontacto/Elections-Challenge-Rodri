@@ -42,7 +42,7 @@ public class CandidateServiceImpl{
 
 	@Transactional(readOnly=true)
 	public Candidate findById(Long id) {
-		return candidateDao.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"no existe el candidate"));
+		return candidateDao.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"no existe el candidato"));
 	}
 
 	@Transactional
@@ -51,9 +51,8 @@ public class CandidateServiceImpl{
 
 	}
 
-	public ResponseEntity<?> createCandidate(@Valid @RequestBody Candidate candidate, BindingResult result){
-		Candidate candidateNew = null;
-		Map<String, Object> response = new HashMap<>();
+	public Candidate createCandidate(@Valid @RequestBody Candidate candidate, BindingResult result){
+		Candidate candidateNew;
 
 		if(result.hasErrors()) {
 
@@ -62,22 +61,20 @@ public class CandidateServiceImpl{
 					.map(err -> "El campo '" + err.getField() +"' "+ err.getDefaultMessage())
 					.collect(Collectors.toList());
 
-			response.put("errors", errors);
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.BAD_REQUEST);
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"errors");
 		}
 
 		try {
+
 			candidateNew = new Candidate();
 			candidateNew = this.save(candidate);
+
 		} catch(DataAccessException e) {
-			response.put("mensaje", "Error al realizar el insert en la base de datos");
-			response.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
-			return new ResponseEntity<Map<String, Object>>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,"Error al realizar el insert en la base de datos");
 		}
 
-		response.put("mensaje", "El candidato ha sido creado con éxito!");
-		response.put("candidate", candidateNew);
-		return new ResponseEntity<Map<String, Object>>(response, HttpStatus.CREATED);
+		return candidateNew;
 
 	}
 
