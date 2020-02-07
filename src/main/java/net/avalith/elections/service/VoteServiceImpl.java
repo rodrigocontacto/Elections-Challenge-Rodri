@@ -112,9 +112,9 @@ public class VoteServiceImpl {
         List<User> users = userService.findFakes();
         BodyVote bodyVote = new BodyVote();
         bodyVote.setId(candidate.getId_candidate());
-        for(User user : users){
+        users.stream().forEach(user -> {
             this.createVote(electionId, user.getId(), bodyVote, result);
-        }
+        });
 
     }
 

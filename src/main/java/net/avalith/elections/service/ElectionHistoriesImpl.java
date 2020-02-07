@@ -1,9 +1,7 @@
 package net.avalith.elections.service;
 
 import net.avalith.elections.dao.IElectionHistoriesDao;
-import net.avalith.elections.entities.BodyElectionCandidateResults;
 import net.avalith.elections.models.Election;
-import net.avalith.elections.models.ElectionCandidate;
 import net.avalith.elections.models.ElectionHistories;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 public class ElectionHistoriesImpl {
@@ -40,38 +37,44 @@ public class ElectionHistoriesImpl {
     private ElectionCandidateServiceImpl electionCandidateService;
 
     @Transactional
-    public void save(ElectionHistories electionHistory){
+    public void save(ElectionHistories electionHistory) {
         this.electionHistoryDao.save(electionHistory);
     }
 
     @Value("${TIME}")
-    @Scheduled(fixedRate = 3600000)
-    public void createHistory(){
-        List<Election> elections = electionService.findAll();
-        List<ElectionCandidate> electionCandidate = electionCandidateService.findAll();
-        if(!elections.isEmpty() && !electionCandidate.isEmpty()) {// lista de election candidate
-            ElectionHistories electionHistories;
+    @Scheduled(fixedRate = 30000)
+    public void saveHistory() {
 
-            for (int x = 0; x < elections.size(); x++) {
-                int i = 0;
-                electionHistories = new ElectionHistories();
-                electionHistories.setDate(Timestamp.from(Instant.now()));
+        electionHistoryDao.saveAll(createHistory());
+    }
 
-                while (elections.get(i).getId() == electionCandidate.get(x).getElection().getId()) {
-                    electionHistories.setElectionCandidates(new ArrayList<ElectionCandidate>());
-                    electionHistories.getElectionCandidates().add(electionCandidate.get(x));
-                    i++;
+    private List<ElectionHistories> createHistory() {
+        List<Election> elections = electionService.getActiveElections();
+
+        return elections.stream().map(
+                election -> {
+                    Integer total = getTotalVotes(election);
+                    return getWinner(election, total);
                 }
-                int totalVotes = 0;
-                for (int c = 0; c < electionHistories.getElectionCandidates().size(); c++) {
-                    totalVotes = totalVotes + electionHistories.getElectionCandidates().get(c).getCountVotes();
+        ).collect(Collectors.toList());
+    }
 
-                }
-                electionHistories.setVotes(totalVotes);
-                electionHistories.setPercentage((float)totalVotes / (float)totalVotes * 100);
-                electionHistoryDao.save(electionHistories);
-            }
-        }
+    private ElectionHistories getWinner(Election election, Integer total) {
 
+        return election.getElectionCandidates().stream().map(
+                electionCandidate -> ElectionHistories.builder().date(Timestamp.from(Instant.now()))
+                        .election(electionCandidate.getElection())
+                        .votes(electionCandidate.getCountVotes())
+                        .percentage((float) (electionCandidate.getCountVotes() / total)).build()
+        ).max(
+                Comparator.comparingInt(ElectionHistories::getVotes)
+        ).orElse(new ElectionHistories());
+    }
+
+    private Integer getTotalVotes(Election election) {
+
+        return election.getElectionCandidates().stream()
+                .map(electionCandidate -> electionCandidate.getCountVotes()).reduce(
+                        0, (a, b) -> Integer.sum(a, b));
     }
 }

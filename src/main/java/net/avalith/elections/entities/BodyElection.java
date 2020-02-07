@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.validation.constraints.NotNull;
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -17,13 +17,13 @@ public class BodyElection {
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @NotNull
     //@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private Date startDate;
+    private LocalDateTime startDate;
 
     @JsonProperty("end_date")
     @JsonFormat(pattern="yyyy-MM-dd HH:mm:ss")
     @NotNull
     //@DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss")
-    private Date endDate;
+    private LocalDateTime endDate;
 
     @JsonProperty("candidate_ids")
     private List<Long> electionCandidates;

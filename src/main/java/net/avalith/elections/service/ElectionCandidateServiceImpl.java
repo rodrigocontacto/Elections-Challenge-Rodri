@@ -9,33 +9,43 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 @Service
-public class ElectionCandidateServiceImpl implements IElectionCandidateService {
+public class ElectionCandidateServiceImpl {
 
     @Autowired
     private IElectionCandidateDao electionCandidateDao;
 
-    @Override
+    @Autowired
+    private CandidateServiceImpl candidateService;
+
     @Transactional(readOnly = true)
     public List<ElectionCandidate> findAll() {
         return (List<ElectionCandidate>) electionCandidateDao.findAll();
     }
 
-    @Override
     @Transactional
     public ElectionCandidate save(ElectionCandidate electionCandidate) {
         return electionCandidateDao.save(electionCandidate);
     }
 
-    @Override
     @Transactional(readOnly = true)
     public ElectionCandidate findById(Long id) {
         return electionCandidateDao.findById(id).orElse(null);
     }
 
-    @Override
     @Transactional
     public void delete(Long id) {
         electionCandidateDao.deleteById(id);
-
     }
+
+    public List<Long> getCandidatesByElectionId(Long electionId){
+
+        return electionCandidateDao.getCandidatesByElectionId(electionId);
+    }
+
+    public Long getElectionCandidateId(Long electionId, Long candidateId){
+
+        return electionCandidateDao.getElectionCandidateId(candidateId, electionId);
+    }
+
+
 }
