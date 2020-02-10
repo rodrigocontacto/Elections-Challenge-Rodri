@@ -1,5 +1,6 @@
 package net.avalith.elections.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,8 +14,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BodyElectionCandidateResults {
-    Long id_election;
+    @JsonProperty(value = "id_election")
+    Long idElection;
     List<BodyCandidate> candidates = new ArrayList<BodyCandidate>();
-    int total_votes;
+    @JsonProperty(value = "total_votes")
+    long totalVotes;
 
 }

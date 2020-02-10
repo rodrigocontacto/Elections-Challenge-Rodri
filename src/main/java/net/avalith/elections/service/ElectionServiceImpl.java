@@ -77,22 +77,17 @@ public class ElectionServiceImpl {
                     electionNew.setEndDate(election.getEndDate());
                     Election electionSaved = this.save(electionNew);
 
-                    List<Candidate> candidates = election.getElectionCandidates().stream()
-                            .map( id -> this.candidateService.findById(id))
-                            .collect(Collectors.toList());
-                    candidates.forEach( c -> {
-                        ElectionCandidate electionCandidate = ElectionCandidate.builder()
-                                .candidate(c)
-                                .election(electionSaved)
-                                .votes(new ArrayList<>())
-                                .build();
-                        electionCandidate = this.electionCandidateService.save(electionCandidate);
-                        electionSaved.getElectionCandidates().add(electionCandidate);
-                        c.getElectionCandidates().add(electionCandidate);
-                        this.candidateService.save(c);
+                    election.getElectionCandidates().stream()
+                            .map(id->this.candidateService.findById(id))
+                            .map(candidate -> ElectionCandidate.builder()
+                            .candidate(candidate)
+                            .election(electionSaved)
+                            .votes(new ArrayList<>())
+                            .build())
+                            .forEach(electionCandidate -> this.electionCandidateService.save(electionCandidate));
 
-                    });
                     return  this.save(electionSaved);
+
                 } else throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Debe tener candidatos");
             } else {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"La fecha de inicio debe ser menor a la de final");
@@ -107,7 +102,7 @@ public class ElectionServiceImpl {
     public BodyElectionCandidateResults electionResults(Long electionId){
         Election election = this.findById(electionId);
         BodyElectionCandidateResults ecResults = new BodyElectionCandidateResults();
-        ecResults.setId_election(election.getId());
+        ecResults.setIdElection(election.getId());
 
         List<BodyCandidate> bodyCandidates = election.getElectionCandidates().stream()
                 .map( ec -> BodyCandidate.builder()
@@ -118,9 +113,9 @@ public class ElectionServiceImpl {
                 .collect(Collectors.toList());
 
         return BodyElectionCandidateResults.builder()
-                .id_election(electionId)
+                .idElection(electionId)
                 .candidates(bodyCandidates)
-                .total_votes(election.getElectionCandidates().stream()
+                .totalVotes(election.getElectionCandidates().stream()
                         .mapToInt( ec -> ec.getVotes().size())
                         .sum()
                 ).build();

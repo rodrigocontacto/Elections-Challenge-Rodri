@@ -7,9 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -68,7 +70,7 @@ public class ElectionHistoriesImpl {
                         .percentage((float) (electionCandidate.getCountVotes() / total)).build()
         ).max(
                 Comparator.comparingInt(ElectionHistories::getVotes)
-        ).orElse(new ElectionHistories());
+        ).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"no se encontro un ganador"));
     }
 
     private Integer getTotalVotes(Election election) {

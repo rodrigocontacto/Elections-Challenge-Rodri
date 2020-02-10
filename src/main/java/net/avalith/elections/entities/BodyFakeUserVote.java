@@ -1,5 +1,6 @@
 package net.avalith.elections.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BodyFakeUserVote {
-    private Long id_candidate;
+    @JsonProperty(value = "id_candidate")
+    private Long idCandidate;
 }

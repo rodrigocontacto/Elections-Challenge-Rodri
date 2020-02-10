@@ -1,6 +1,7 @@
 package net.avalith.elections.models;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -8,6 +9,7 @@ import javax.persistence.*;
 
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @Data
 @Entity
 @Table(name = "votes",uniqueConstraints = @UniqueConstraint(columnNames = {"id_usuario", "id_election_candidate"}))

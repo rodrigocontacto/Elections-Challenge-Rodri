@@ -79,13 +79,14 @@ public class VoteServiceImpl {
             electionNew = electionService.findById(idElection);
             user = userService.findById(idUser);
             boolean existCandidateInElection = false;
-            for(int i= 0; i< electionNew.getElectionCandidates().size(); i++){
-                if(electionNew.getElectionCandidates().get(i).getCandidate().getId() == bodyVote.getId()){
-                    electedCandidate = electionNew.getElectionCandidates().get(i).getCandidate();
-                    electionCandidate = electionNew.getElectionCandidates().get(i);
-                    existCandidateInElection = true;
-                }
-            }
+            ElectionCandidate exist = electionNew.getElectionCandidates().stream()
+                    .filter(it  ->  it.getCandidate().getId() == bodyVote.getId())
+                    .findFirst()
+                    .orElseThrow(()-> new ResponseStatusException(HttpStatus.BAD_REQUEST,"no existe"));
+
+
+            electionCandidate = exist;
+            existCandidateInElection = true;
 
             if(existCandidateInElection){
                 if (this.hasNotVoted(user, electionNew)) {
@@ -111,7 +112,7 @@ public class VoteServiceImpl {
 
         List<User> users = userService.findFakes();
         BodyVote bodyVote = new BodyVote();
-        bodyVote.setId(candidate.getId_candidate());
+        bodyVote.setId(candidate.getIdCandidate());
         users.stream().forEach(user -> {
             this.createVote(electionId, user.getId(), bodyVote, result);
         });

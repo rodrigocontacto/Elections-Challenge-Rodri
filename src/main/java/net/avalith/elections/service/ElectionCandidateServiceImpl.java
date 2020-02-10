@@ -3,8 +3,10 @@ package net.avalith.elections.service;
 import net.avalith.elections.dao.IElectionCandidateDao;
 import net.avalith.elections.models.ElectionCandidate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -19,7 +21,7 @@ public class ElectionCandidateServiceImpl {
 
     @Transactional(readOnly = true)
     public List<ElectionCandidate> findAll() {
-        return (List<ElectionCandidate>) electionCandidateDao.findAll();
+        return electionCandidateDao.findAll();
     }
 
     @Transactional
@@ -29,7 +31,7 @@ public class ElectionCandidateServiceImpl {
 
     @Transactional(readOnly = true)
     public ElectionCandidate findById(Long id) {
-        return electionCandidateDao.findById(id).orElse(null);
+        return electionCandidateDao.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,"no existe el electioncandidate"));
     }
 
     @Transactional
